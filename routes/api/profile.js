@@ -11,6 +11,12 @@ const User = require('../../models/User')
 // Load profile validation
 const validateProfileInput = require('../../validation/profile')
 
+// Load experience validation
+const validateExperienceInput = require('../../validation/experience')
+
+// Load education validation
+const validateEducationInput = require('../../validation/education.js')
+
 // @route   GET api/profile/test
 // @desc    Tests profile route
 // @access  Public
@@ -133,7 +139,7 @@ router.get('/user/:user_id', (req, res) => {
   })
   .catch(err => res.status(404).json({ profile: 'There is no profile for this user'}))
 })
-
+ 
 // @route   GET api/profile/all
 // @desc    Get all the profiles
 // @access  Public
@@ -152,5 +158,73 @@ router.get('/all', (req, res) => {
     })
     .catch(err => res.status(404).json({ profile: 'there are no profile' }))
 })
+
+// @route   POST api/profile/experience
+// @desc    Add experience to profile
+// @access  Private
+router.post('/experience', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const { errors, isValid } = validateExperienceInput(req.body)
+  
+  // Check validation
+  if (!isValid) {
+    return res.status(400).json(errors)
+  }
+
+  Profile.findOne({ user: req.user.id })
+    .then(profile => {
+      const newExp = {
+        title: req.body.title,
+        company: req.body.company,
+        location: req.body.location,
+        from: req.body.from,
+        to: req.body.to,
+        current: req.body.current,
+        description: req.body.description
+      }
+
+      // Add to exp array
+      profile.experience.unshift(newExp)
+
+      profile.save()
+        .then(profile => res.json(profile))
+        .catch(err => console.log(err))
+
+    })
+})
+
+// @route   POST api/profile/education
+// @desc    Add education to user profile
+// @access  Private
+router.post('/education', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const { errors, isValid } = validateEducationInput(req.body)
+  
+  // Check validation
+  if (!isValid) {
+    return res.status(400).json(errors)
+  }
+
+  Profile.findOne({ user: req.user.id})
+    .then(profile => {
+      const newEdu = {
+        school: req.body.school,
+        degree: req.body.degree,
+        fieldofstudy: req.body.fieldofstudy,
+        from: req.body.from,
+        to: req.body.to,
+        current: req.body.current,
+        description: req.body.description
+      }
+
+      // Add to education array
+      profile.education.unshift(newEdu)
+
+      profile.save()
+        .then(profile => {
+          return res.json(profile)
+        })
+        .catch(err => res.status(400).json(err))
+    })
+})
+
 
 module.exports = router
