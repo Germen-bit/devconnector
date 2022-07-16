@@ -255,12 +255,12 @@ router.delete('/education/:edu_id', passport.authenticate('jwt', { session: fals
   Profile.findOne({ user: req.user.id })
     .then(profile => {
       // Get remove index
-      const removeIndex = profile.experience 
+      const removeIndex = profile.education 
         .map(item => item.id)
         .indexOf(req.params.edu_id)
 
         // Splice out of array
-        profile.experience.splice(removeIndex, 1)
+        profile.education.splice(removeIndex, 1)
 
         // Save 
         profile.save().then(profile => res.json(profile))
